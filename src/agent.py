@@ -35,7 +35,7 @@ class MiniAgent:
         if self.step == 0:
             # Always record the goal first (state change).
             return Action("WRITE_NOTE", payload=f"Goal: {self.goal}")
-
+        # below we check for certain keyowrd indicating "reading"
         if any(k in g for k in ["show", "list", "read", "notes"]):
             return Action("READ_NOTES")
 
