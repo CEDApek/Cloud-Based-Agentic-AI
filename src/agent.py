@@ -20,11 +20,13 @@ class MiniAgent:
         - repeats
     """
 
+    """ for each prompt, they hold the goal, steps, and max steps taken """
     def __init__(self, goal: str):
         self.goal = goal.strip()
         self.step = 0
         self.max_steps = 6
 
+    """ This is the planner """
     def decide(self) -> Action:
         """
         For now: rule-based 'planner' (free).
@@ -36,7 +38,7 @@ class MiniAgent:
             # Always record the goal first (state change).
             return Action("WRITE_NOTE", payload=f"Goal: {self.goal}")
         # below we check for certain keyowrd indicating "reading"
-        if any(k in g for k in ["show", "list", "read", "notes"]):
+        if any(k in g for k in ["show", "list", "read", "notes", "check", "prove"]):
             return Action("READ_NOTES")
 
         # Default finish.
