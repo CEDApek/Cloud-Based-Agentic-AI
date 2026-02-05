@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Literal, Optional
+import re
 
 from src.tools.notes import write_note, read_notes
 
@@ -26,23 +27,53 @@ class MiniAgent:
         self.step = 0
         self.max_steps = 6
 
-    """ This is the planner """
+    """ Agentic Planner """
     def decide(self) -> Action:
         """
-        For now: rule-based 'planner' (free).
-        Later: replace with a real LLM planner.
+        Rule-based planner (free) that only writes notes if asked.
+
+        Plan:
+        - If user asked to save/write/remember/note:
+            step 0 -> WRITE_NOTE
+            step 1 -> (optional) READ_NOTES if asked
+            step 2 -> DONE
+        - If user only asked to show/list/read notes:
+            step 0 -> READ_NOTES
+            step 1 -> DONE
+        - Otherwise:
+            step 0 -> DONE
         """
         g = self.goal.lower()
 
-        if self.step == 0:
-            # Always record the goal first (state change).
-            return Action("WRITE_NOTE", payload=f"Goal: {self.goal}")
-        # below we check for certain keyowrd indicating "reading"
-        if any(k in g for k in ["show", "list", "read", "notes", "check", "prove"]):
-            return Action("READ_NOTES")
+        wants_read = any(k in g for k in ["show", "list", "read", "notes"])
 
-        # Default finish.
+        # Writing should require a *clear* write intent (not just the word "notes")
+        wants_write = any(k in g for k in ["save", "write", "remember"]) or bool(
+            re.search(r"\b(save|write)\s+a\s+note\b|\b(note:)\b", g)
+        )
+
+        # Case 1: User requested writing a note
+        if wants_write:
+            if self.step == 0:
+                # For now, we store the whole goal as the note content.
+                # Later we can parse only the part after "save a note:" etc.
+                return Action("WRITE_NOTE", payload=self.goal)
+
+            if self.step == 1 and wants_read:
+                return Action("READ_NOTES")
+
+            return Action("DONE")
+
+        # Case 2: User did NOT request writing, but did request reading
+        if wants_read:
+            if self.step == 0:
+                return Action("READ_NOTES")
+            return Action("DONE")
+
+        # Case 3: No write/read requested
         return Action("DONE")
+
+
 
     def act(self, action: Action) -> str:
         if action.kind == "WRITE_NOTE":
