@@ -20,7 +20,7 @@ def extract_note_text(goal: str) -> str | None:
     for marker in ("note:", "list:", "text:"):
         index = lower.find(marker)
         if index != -1:
-            content = g[idx + len(marker):].strip()
+            content = g[index + len(marker):].strip()
             return content if content else None
     return None
 
