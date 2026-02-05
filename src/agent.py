@@ -6,6 +6,24 @@ from src.tools.notes import write_note, read_notes
 
 ActionKind = Literal["WRITE_NOTE", "READ_NOTES", "DONE"]
 
+def extract_note_text(goal: str) -> str | None:
+    """
+    Extract note content from a goal string.
+    Examples:
+      "save a note: hello" -> "hello"
+      "write a note: buy milk, then show notes" -> "buy milk"
+    Returns None if no explicit "note:" marker is found.
+    """
+    g = goal.strip()
+    lower = g.lower()
+    marker = "note:"
+    idx = lower.find(marker)
+    if idx == -1:
+        return None
+    content = g[idx + len(marker):].strip()
+    return content if content else None
+
+
 @dataclass
 class Action:
     kind: ActionKind
@@ -57,7 +75,10 @@ class MiniAgent:
             if self.step == 0:
                 # For now, we store the whole goal as the note content.
                 # Later we can parse only the part after "save a note:" etc.
-                return Action("WRITE_NOTE", payload=self.goal)
+                note_text = extract_note_text(self.goal)
+                payload = note_text if note_text is not None else self.goal
+                return Action("WRITE_NOTE", payload=payload)
+
 
             if self.step == 1 and wants_read:
                 return Action("READ_NOTES")
