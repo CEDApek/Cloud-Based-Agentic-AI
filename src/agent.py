@@ -6,6 +6,7 @@ from src.tools.notes import write_note, read_notes
 
 ActionKind = Literal["WRITE_NOTE", "READ_NOTES", "DONE"]
 
+# Note Content extract
 def extract_note_text(goal: str) -> str | None:
     """
     Extract note content from a goal string.
@@ -16,12 +17,12 @@ def extract_note_text(goal: str) -> str | None:
     """
     g = goal.strip()
     lower = g.lower()
-    marker = "note:"
-    idx = lower.find(marker)
-    if idx == -1:
-        return None
-    content = g[idx + len(marker):].strip()
-    return content if content else None
+    for marker in ("note:", "list:", "text:"):
+        index = lower.find(marker)
+        if index != -1:
+            content = g[idx + len(marker):].strip()
+            return content if content else None
+    return None
 
 
 @dataclass
@@ -75,7 +76,7 @@ class MiniAgent:
             if self.step == 0:
                 # For now, we store the whole goal as the note content.
                 # Later we can parse only the part after "save a note:" etc.
-                note_text = extract_note_text(self.goal)
+                note_text = extract_note_text(self.goal) # returns either None or the payload part
                 payload = note_text if note_text is not None else self.goal
                 return Action("WRITE_NOTE", payload=payload)
 
