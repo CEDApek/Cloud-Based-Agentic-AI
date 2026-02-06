@@ -9,11 +9,11 @@ ActionKind = Literal["WRITE_NOTE", "READ_NOTES", "DONE"]
 # Note Content extract
 def extract_note_text(goal: str) -> str | None:
     """
-    Extract note content from a goal string.
-    Examples:
-      "save a note: hello" -> "hello"
-      "write a note: buy milk, then show notes" -> "buy milk"
-    Returns None if no explicit "note:" marker is found.
+        Extract note content from a goal string.
+        Examples:
+        "save a note: hello" -> "hello"
+        "write a note: buy milk, then show notes" -> "buy milk"
+        Returns None if no explicit "note:" marker is found.
     """
     g = goal.strip()
     lower = g.lower()
@@ -115,3 +115,32 @@ class MiniAgent:
             self.step += 1
             if action.kind == "DONE":
                 break
+    def run_collect(self) -> dict:
+        """
+            Run the agent but collect results instead of printing.
+            This is used by the API.
+        """
+        steps = []
+        final = None
+
+        while self.step < self.max_steps:
+            action = self.decide()
+            result = self.act(action)
+
+            steps.append({
+                "step": self.step + 1,
+                "action": action.kind,
+                "result": result,
+            })
+
+            self.step += 1
+            final = result
+
+            if action.kind == "DONE":
+                break
+
+        return {
+            "goal": self.goal,
+            "steps": steps,
+            "final": final,
+        }
