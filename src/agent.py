@@ -102,7 +102,7 @@ class MiniAgent:
             return write_note(action.payload or "")
         if action.kind == "READ_NOTES":
             return read_notes(last_n=10)
-        return "Finished."
+        return ""
 
     def run(self) -> None:
         print(f"\n[GOAL] {self.goal}\n")
@@ -134,7 +134,8 @@ class MiniAgent:
             })
 
             self.step += 1
-            final = result
+            if result:
+                final = result
 
             if action.kind == "DONE":
                 break
