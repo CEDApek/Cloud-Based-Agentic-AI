@@ -15,7 +15,7 @@ class RunResponse(BaseModel):
     steps: list[dict]
     final: str | None
 
-@app.get("/health")
+@app.get("/status")
 def health():
     return {"status": "ok"}
 
