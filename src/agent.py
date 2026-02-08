@@ -3,8 +3,9 @@ from typing import Literal, Optional
 import re
 
 from src.tools.notes import write_note, read_notes
+from src.tools.todo import add_todo, list_todos
 
-ActionKind = Literal["WRITE_NOTE", "READ_NOTES", "DONE"]
+ActionKind = Literal["WRITE_NOTE", "READ_NOTES", "DONE", "ADD_TODO", "LIST_TODOS"]
 
 # Note Content extract
 def extract_note_text(goal: str) -> str | None:
@@ -64,12 +65,18 @@ class MiniAgent:
         """
         g = self.goal.lower()
 
-        wants_read = any(k in g for k in ["show", "list", "read", "notes"])
+        # word indicator from prompt
+        wants_read = any(k in g for k in ["show notes", "list", "read", "notes"])
 
         # Writing should require a *clear* write intent (not just the word "notes")
         wants_write = any(k in g for k in ["save", "write", "remember"]) or bool(
             re.search(r"\b(save|write)\s+a\s+note\b|\b(note:)\b", g)
         )
+
+        wants_todo_add = any(k in g for k in ["todo:", "add todo"])
+
+        wants_todo_list = any(k in g for k in ["list todos", "show todos", "todos", "show tasks"])
+
 
         # Case 1: User requested writing a note
         if wants_write:
@@ -92,7 +99,20 @@ class MiniAgent:
                 return Action("READ_NOTES")
             return Action("DONE")
 
-        # Case 3: No write/read requested
+        if wants_todo_add:
+            if self.step == 0:
+                #everything after "todo:" becomes the task text
+                index = g.find("todo:")
+                payload = self.goal[index + len("todo:"):].strip()
+                return Action("ADD_TODO", payload=payload)
+            return Action("DONE")
+
+        if wants_todo_list:
+            if self.step == 0:
+                return Action("LIST_TODOS")
+            return Action("DONE")    
+
+        # Case 4: No write/read requested
         return Action("DONE")
 
 
@@ -102,6 +122,10 @@ class MiniAgent:
             return write_note(action.payload or "")
         if action.kind == "READ_NOTES":
             return read_notes(last_n=10)
+        if action.kind == "ADD_TODO":
+            return add_todo(action.payload or "")
+        if action.kind == "LIST_TODOS":
+            return list_todos()
         return ""
 
     def run(self) -> None:
