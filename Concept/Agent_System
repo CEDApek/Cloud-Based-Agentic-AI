@@ -1,0 +1,7 @@
+# Agent System
+
+## 1). main.py `/src/main.py`
+
+> act as an entry point (reads goal from command line and starts the agent)
+
+
