@@ -53,12 +53,12 @@ class MiniAgent:
         Rule-based planner (free) that only writes notes if asked.
 
         Plan:
-        - If user asked to save/write/remember/note:
-            step 0 -> WRITE_NOTE
-            step 1 -> (optional) READ_NOTES if asked
+        - If user asked to write note / add to do list:
+            step 0 -> WRITE_NOTE / ADD_TODO
+            step 1 -> (optional) READ_NOTES if asked SHOW
             step 2 -> DONE
-        - If user only asked to show/list/read notes:
-            step 0 -> READ_NOTES
+        - If user only asked to show/list/read notes/todo_list:
+            step 0 -> READ_NOTES / SHOW_TODOS
             step 1 -> DONE
         - Otherwise:
             step 0 -> DONE
@@ -139,6 +139,7 @@ class MiniAgent:
             self.step += 1
             if action.kind == "DONE":
                 break
+
     def run_collect(self) -> dict:
         """
             Run the agent but collect results instead of printing.
